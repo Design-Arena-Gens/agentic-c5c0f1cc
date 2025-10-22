@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String         @id @default(uuid())
+  name              String
+  email             String         @unique
+  passwordHash      String
+  role              UserRole
+  skills            Json?
+  experience        String?
+  preferredRole     String?
+  preferredLocation String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  jobs              Job[]          @relation("EmployerJobs")
+  applications      Application[]  @relation("UserApplications")
+}
+
+model Job {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  skills      Json?
+  location    String
+  salary      String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  employerId  String
+  employer    User           @relation("EmployerJobs", fields: [employerId], references: [id])
+  applications Application[]
+}
+
+model Application {
+  id        String   @id @default(uuid())
+  message   String?
+  createdAt DateTime @default(now())
+  jobId     String
+  seekerId  String
+  job       Job      @relation(fields: [jobId], references: [id])
+  seeker    User     @relation("UserApplications", fields: [seekerId], references: [id])
+}
+
+enum UserRole {
+  EMPLOYER
+  SEEKER
+  ADMIN
+}
